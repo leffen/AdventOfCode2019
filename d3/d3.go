@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"math"
 	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -16,6 +18,10 @@ type cell struct {
 	y   int
 	num int
 	cnt int
+}
+
+func (c *cell) manhattenDist() int {
+	return abs(c.x) + abs(c.y)
 }
 
 type grid struct {
@@ -48,6 +54,13 @@ func (g *grid) getCell(x, y int) *cell {
 		return nil
 	}
 	return cell
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 func (g *grid) show() {
@@ -133,12 +146,32 @@ func (p *program) performWalk(nr int, steps []string) {
 	}
 }
 
-func (p *program) run(input string) int {
-	p.grd = grid{}
+func (p *program) wireItUp(input string) {
 	walks := strings.Split(input, "\n")
 	for num, w := range walks {
 		steps := strings.Split(w, ",")
 		p.performWalk(num, steps)
 	}
+}
+
+func (p *program) shortestPath1() int {
+	shortestDist := math.MaxInt32
+	for _, c := range p.grd.cells {
+		if c.cnt > 1 {
+			// Crossing
+			dist := c.manhattenDist()
+			if dist < shortestDist {
+				shortestDist = dist
+			}
+
+		}
+
+	}
+	return shortestDist
+}
+
+func (p *program) run(input string) int {
+	p.grd = grid{}
+	p.wireItUp(input)
 	return 0
 }
