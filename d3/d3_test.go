@@ -21,7 +21,22 @@ func TestGrid(t *testing.T) {
 			p := program{}
 			p.run(tt.in)
 			dist := p.shortestPath1()
+			if tt.out != dist {
+				//	p.grd.show()
+			}
 			assert.Equal(t, tt.out, dist)
 		})
 	}
+}
+
+func TestShow(t *testing.T) {
+	input := "R8,U5,L5,D3\nU7,R6,D4,L4"
+	res := 6
+
+	p := program{}
+	p.run(input)
+	dist := p.shortestPath1()
+	p.grd.show()
+	assert.Equal(t, res, dist)
+	assert.True(t, false)
 }
