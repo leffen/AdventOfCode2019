@@ -30,8 +30,8 @@ func TestGrid(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	input := "R8,U5,L5,D3\nU7,R6,D4,L4"
-	res := 6
+	input := "R3,U3,R3,D3\nL2,U2,R5,D3"
+	res := 3
 
 	p := program{}
 	p.run(input)
@@ -39,4 +39,16 @@ func TestShow(t *testing.T) {
 	p.grd.show()
 	assert.Equal(t, res, dist)
 	assert.True(t, false)
+}
+
+func TestShow1(t *testing.T) {
+	input := "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83"
+	//input := "R8,U5,L5,D3,R5\nU7,R6,D4,L4"
+	res := 159
+
+	p := program{}
+	p.run(input)
+	dist := p.shortestPath1()
+	// p.grd.show()
+	assert.Equal(t, res, dist)
 }

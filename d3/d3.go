@@ -113,47 +113,42 @@ type program struct {
 	posY int
 }
 
-func (p *program) walk(dist int, walker func(i int)) {
+func (p *program) walk(nr,dist int,dx,dy int,mrk string ) {
 	for i := 0; i < dist; i++ {
-		walker(i)
+		p.posX += dx
+		p.posY += dy
+		p.grd.setXy(p.posX, p.posY, nr, mrk)
+	}
+}
+
+func (p *program) doStep(nr,dist int,direction string){
+	switch direction {
+	case "R":
+		p.walk(nr,dist,1,0,"-")
+	case "L":
+		p.walk(nr,dist,-1,0,"-")
+	case "D":
+		p.walk(nr,dist,0,-1,"|")
+	case "U":
+		p.walk(nr,dist,0,1,"|")
 	}
 }
 
 func (p *program) performWalk(nr int, steps []string) {
 	p.posX = 0
 	p.posY = 0
+
 	for _, step := range steps {
 		dist, err := strconv.Atoi(step[1:])
 		if err != nil {
 			logrus.Fatal(err)
 		}
-		//		fmt.Printf("Walk %s -> %s dist:%d\n", step, string(step[0]), dist)
-		switch step[0] {
-		case 'R':
-			p.walk(dist, func(i int) {
-				p.posX++
-				p.grd.setXy(p.posX, p.posY, nr, "-")
-			})
-		case 'L':
-			p.walk(dist, func(i int) {
-				p.posX--
-				p.grd.setXy(p.posX, p.posY, nr, "-")
-			})
-		case 'D':
-			p.walk(dist, func(i int) {
-				p.posY--
-				p.grd.setXy(p.posX, p.posY, nr, "|")
-			})
-		case 'U':
-			p.walk(dist, func(i int) {
-				p.posY++
-				p.grd.setXy(p.posX, p.posY, nr, "|")
-			})
-		}
+		p.doStep(nr,dist,string(step[0]))
 	}
 }
 
 func (p *program) wireItUp(input string) {
+	p.grd.setXy(0, 0, 0, "o")
 	walks := strings.Split(input, "\n")
 	for num, w := range walks {
 		steps := strings.Split(w, ",")
