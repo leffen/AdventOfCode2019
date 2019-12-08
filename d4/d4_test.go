@@ -27,3 +27,22 @@ func TestHasDouble(t *testing.T) {
 	}
 
 }
+
+
+func TestHasOnlyDouble(t *testing.T){
+	var tests = []struct {
+		num      int64
+		exp bool
+	}{
+		{477778,false},
+		{477779,false},
+		{477788,true},
+		{477789,false},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("Testing %d", tt.num), func(tx *testing.T) {
+			exp := hasOnlyDouble(tt.num)
+			assert.Equal(tx, tt.exp, exp)
+		})
+	}
+}
