@@ -14,145 +14,60 @@ func main() {
 	p := program{}
 	p.run(input)
 	dist := p.shortestPath1()
-	p.grd.show()
+	//p.grd.show()
 	fmt.Printf("Dist funnet: %d\n", dist)
-}
-
-type cell struct {
-	x   int
-	y   int
-	num int
-	cnt int
-	mrk string
-}
-
-func (c *cell) manhattenDist() int {
-	return abs(c.x) + abs(c.y)
-}
-
-type grid struct {
-	cells map[string]*cell
-}
-
-func (g *grid) setXy(x, y, num int, mrk string) {
-	if g.cells == nil {
-		g.cells = map[string]*cell{}
-	}
-
-	key := fmt.Sprintf("%d,%d", x, y)
-
-	v, ok := g.cells[key]
-	if ok {
-		v.cnt++
-		v.num = 0
-		v.mrk = "x"
-		return
-	}
-
-	v = &cell{x: x, y: y, cnt: 1, num: num + 1, mrk: mrk}
-	g.cells[key] = v
-}
-
-func (g *grid) getCell(x, y int) *cell {
-	key := fmt.Sprintf("%d,%d", x, y)
-
-	cell, ok := g.cells[key]
-	if !ok {
-		return nil
-	}
-	return cell
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func (g *grid) show() {
-	maxx := -9999
-	minx := 9999
-
-	maxy := -9999
-	miny := 9999
-
-	for _, c := range g.cells {
-		if c.x < minx {
-			minx = c.x
-		}
-		if c.x > maxx {
-			maxx = c.x
-		}
-		if c.y < miny {
-			miny = c.y
-		}
-		if c.y > maxy {
-			maxy = c.y
-		}
-	}
-	fmt.Printf("miny: %d maxy: %d minx:%d maxx:%d\n", miny, maxy, minx, maxx)
-	for y := maxy + 1; y > miny-2; y-- {
-		for x := minx - 1; x < maxx+2; x++ {
-			cell := g.getCell(x, y)
-			pos := "."
-			if cell != nil {
-				pos = cell.mrk
-			}
-			fmt.Print(pos)
-		}
-		fmt.Println("")
-	}
-	fmt.Println("")
-
 }
 
 type program struct {
 	grd  grid
 	posX int
 	posY int
+	step int
 }
 
-func (p *program) walk(nr,dist int,dx,dy int,mrk string ) {
+func (p *program) walk(nr, dist int, dx, dy int, mrk string) {
 	for i := 0; i < dist; i++ {
 		p.posX += dx
 		p.posY += dy
+		p.step++
 		p.grd.setXy(p.posX, p.posY, nr, mrk)
 	}
 }
 
-func (p *program) doStep(nr,dist int,direction string){
+func (p *program) doStep(nr, dist int, direction string) {
 	switch direction {
 	case "R":
-		p.walk(nr,dist,1,0,"-")
+		p.walk(nr, dist, 1, 0, "-")
 	case "L":
-		p.walk(nr,dist,-1,0,"-")
+		p.walk(nr, dist, -1, 0, "-")
 	case "D":
-		p.walk(nr,dist,0,-1,"|")
+		p.walk(nr, dist, 0, -1, "|")
 	case "U":
-		p.walk(nr,dist,0,1,"|")
+		p.walk(nr, dist, 0, 1, "|")
 	}
 }
 
 func (p *program) performWalk(nr int, steps []string) {
 	p.posX = 0
 	p.posY = 0
-
+	p.step = 0
 	for _, step := range steps {
 		dist, err := strconv.Atoi(step[1:])
 		if err != nil {
 			logrus.Fatal(err)
 		}
-		p.doStep(nr,dist,string(step[0]))
+		p.doStep(nr, dist, string(step[0]))
 	}
 }
 
 func (p *program) wireItUp(input string) {
 	p.grd.setXy(0, 0, 0, "o")
+
 	walks := strings.Split(input, "\n")
 	for num, w := range walks {
+		fmt.Printf("Wiring %d\n", num+1)
 		steps := strings.Split(w, ",")
-		p.performWalk(num, steps)
+		p.performWalk(num+1, steps)
 	}
 }
 
@@ -172,6 +87,24 @@ func (p *program) shortestPath1() int {
 	}
 	return shortestDist
 }
+
+func (p *program) leastSteps() int {
+	shortestDist := math.MaxInt32
+	for _, c := range p.grd.cells {
+		if c.cnt > 1 {
+			// Crossing
+			dist := c.manhattenDist()
+			fmt.Printf("X Cell %v dist=%d\n", c, dist)
+			if dist < shortestDist {
+				fmt.Printf("Setting shortest to %d from %d\n", dist, shortestDist)
+				shortestDist = dist
+			}
+		}
+
+	}
+	return shortestDist
+}
+
 
 func (p *program) run(input string) int {
 	p.grd = grid{}

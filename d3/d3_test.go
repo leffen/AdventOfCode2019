@@ -22,7 +22,7 @@ func TestGrid(t *testing.T) {
 			p.run(tt.in)
 			dist := p.shortestPath1()
 			if tt.out != dist {
-				//	p.grd.show()
+				p.grd.show()
 			}
 			assert.Equal(t, tt.out, dist)
 		})
@@ -30,15 +30,17 @@ func TestGrid(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	input := "R3,U3,R3,D3\nL2,U2,R5,D3"
-	res := 3
+	input := "R8,U5,L5,D3\nU7,R6,D4,L4"
+	res := 6
 
 	p := program{}
 	p.run(input)
 	dist := p.shortestPath1()
-	p.grd.show()
+	if dist != res {
+		p.grd.show()
+	}
 	assert.Equal(t, res, dist)
-	assert.True(t, false)
+	// assert.True(t, false)
 }
 
 func TestShow1(t *testing.T) {
@@ -49,6 +51,38 @@ func TestShow1(t *testing.T) {
 	p := program{}
 	p.run(input)
 	dist := p.shortestPath1()
-	// p.grd.show()
+	if dist != res {
+		p.grd.show()
+	}
 	assert.Equal(t, res, dist)
+}
+
+func TestWire(t *testing.T) {
+	var tests = []struct {
+		in  string
+		out int
+	}{
+		{"R75",76},
+		{"D30",31},
+		{"R83",84},
+		{"R75,D30,R83,U83,L12,D49,R71,U7,L72",480},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.in, func(tx *testing.T) {
+			p := program{}
+			p.wireItUp(tt.in)
+			assert.Equal(t,tt.out,p.grd.count())
+		})
+	}
+}
+
+
+func TestGroNotes(t *testing.T){
+//	filename:= "testdata/gro1.txt"
+
+
+
+
+
 }
