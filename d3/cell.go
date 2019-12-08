@@ -2,12 +2,15 @@ package main
 
 import "fmt"
 
+
 type cell struct {
 	x   int
 	y   int
 	num int
 	cnt int
 	mrk string
+	step int
+	xstep map[int]int
 }
 
 func (c *cell) manhattenDist() int {

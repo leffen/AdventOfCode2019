@@ -6,7 +6,7 @@ type grid struct {
 	cells map[string]*cell
 }
 
-func (g *grid) setXy(x, y, num int, mrk string) {
+func (g *grid) setXy(x, y, num int, mrk string, step int) {
 	if g.cells == nil {
 		g.cells = map[string]*cell{}
 	}
@@ -19,11 +19,16 @@ func (g *grid) setXy(x, y, num int, mrk string) {
 			fmt.Printf("XCROSS (%d,%d)  N:%d M:%s -> %s\n", x, y, num, mrk, v)
 			v.cnt++
 			v.mrk = "x"
+			if v.xstep == nil {
+				v.xstep = map[int]int{}
+			}
+			v.xstep[v.num] = v.step
+			v.xstep[num] = step
 		}
 		return
 	}
 
-	v = &cell{x: x, y: y, cnt: 1, num: num, mrk: mrk}
+	v = &cell{x: x, y: y, cnt: 1, num: num, mrk: mrk, step: step}
 	g.cells[key] = v
 }
 
