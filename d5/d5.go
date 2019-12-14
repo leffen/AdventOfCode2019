@@ -9,43 +9,51 @@ import (
 )
 
 func main() {
-	input := "1,0,0,3,1,1,2,3,1,3,4,3,1,5,0,3,2,10,1,19,1,5,19,23,1,23,5,27,2,27,10,31,1,5,31,35,2,35,6,39,1,6,39,43,2,13,43,47,2,9,47,51,1,6,51,55,1,55,9,59,2,6,59,63,1,5,63,67,2,67,13,71,1,9,71,75,1,75,9,79,2,79,10,83,1,6,83,87,1,5,87,91,1,6,91,95,1,95,13,99,1,10,99,103,2,6,103,107,1,107,5,111,1,111,13,115,1,115,13,119,1,13,119,123,2,123,13,127,1,127,6,131,1,131,9,135,1,5,135,139,2,139,6,143,2,6,143,147,1,5,147,151,1,151,2,155,1,9,155,0,99,2,14,0,0"
-
+	input := "3,225,1,225,6,6,1100,1,238,225,104,0,1101,48,82,225,102,59,84,224,1001,224,-944,224,4,224,102,8,223,223,101,6,224,224,1,223,224,223,1101,92,58,224,101,-150,224,224,4,224,102,8,223,223,1001,224,3,224,1,224,223,223,1102,10,89,224,101,-890,224,224,4,224,1002,223,8,223,1001,224,5,224,1,224,223,223,1101,29,16,225,101,23,110,224,1001,224,-95,224,4,224,102,8,223,223,1001,224,3,224,1,223,224,223,1102,75,72,225,1102,51,8,225,1102,26,16,225,1102,8,49,225,1001,122,64,224,1001,224,-113,224,4,224,102,8,223,223,1001,224,3,224,1,224,223,223,1102,55,72,225,1002,174,28,224,101,-896,224,224,4,224,1002,223,8,223,101,4,224,224,1,224,223,223,1102,57,32,225,2,113,117,224,101,-1326,224,224,4,224,102,8,223,223,101,5,224,224,1,223,224,223,1,148,13,224,101,-120,224,224,4,224,1002,223,8,223,101,7,224,224,1,223,224,223,4,223,99,0,0,0,677,0,0,0,0,0,0,0,0,0,0,0,1105,0,99999,1105,227,247,1105,1,99999,1005,227,99999,1005,0,256,1105,1,99999,1106,227,99999,1106,0,265,1105,1,99999,1006,0,99999,1006,227,274,1105,1,99999,1105,1,280,1105,1,99999,1,225,225,225,1101,294,0,0,105,1,0,1105,1,99999,1106,0,300,1105,1,99999,1,225,225,225,1101,314,0,0,106,0,0,1105,1,99999,8,677,226,224,102,2,223,223,1006,224,329,101,1,223,223,107,677,677,224,1002,223,2,223,1006,224,344,101,1,223,223,8,226,677,224,102,2,223,223,1006,224,359,101,1,223,223,107,226,226,224,102,2,223,223,1005,224,374,1001,223,1,223,1108,677,226,224,1002,223,2,223,1006,224,389,101,1,223,223,107,677,226,224,102,2,223,223,1006,224,404,1001,223,1,223,1107,226,677,224,1002,223,2,223,1006,224,419,1001,223,1,223,108,677,677,224,102,2,223,223,1005,224,434,1001,223,1,223,1008,677,226,224,1002,223,2,223,1006,224,449,1001,223,1,223,7,226,677,224,1002,223,2,223,1006,224,464,1001,223,1,223,1007,677,677,224,102,2,223,223,1005,224,479,1001,223,1,223,1007,226,226,224,1002,223,2,223,1005,224,494,1001,223,1,223,108,226,226,224,1002,223,2,223,1005,224,509,1001,223,1,223,1007,226,677,224,1002,223,2,223,1006,224,524,101,1,223,223,1107,677,677,224,102,2,223,223,1005,224,539,101,1,223,223,1107,677,226,224,102,2,223,223,1005,224,554,1001,223,1,223,108,677,226,224,1002,223,2,223,1006,224,569,1001,223,1,223,1108,226,677,224,1002,223,2,223,1006,224,584,101,1,223,223,8,677,677,224,1002,223,2,223,1006,224,599,1001,223,1,223,1008,226,226,224,102,2,223,223,1006,224,614,101,1,223,223,7,677,677,224,1002,223,2,223,1006,224,629,101,1,223,223,1008,677,677,224,102,2,223,223,1005,224,644,101,1,223,223,7,677,226,224,1002,223,2,223,1005,224,659,101,1,223,223,1108,226,226,224,102,2,223,223,1006,224,674,1001,223,1,223,4,223,99,226"
+	inpVals := []int{1}
 	p := program{}
-	for i := 0; i < 99; i++ {
-		for j := 0; j < 99; j++ {
-			p.prepItems(input)
-			p.items[1] = i
-			p.items[2] = j
-			res := p.run()
-			if res == 19690720 {
-				fmt.Printf("YAY ! p1=%d p2=%d RES=%d\n", i, j, i*100+j)
-				return
-			}
-		}
-	}
-	logrus.Fatal("Unable to find result")
+	p.prepItems(input)
+	res := p.run(inpVals)
+	fmt.Printf("RES=%d Outputs:%v\n", res, p.outputs)
+	//logrus.Fatal("Unable to find result")
 }
 
 type program struct {
-	items []int
-	curr  int
+	items   []int
+	curr    int
+	outputs []int
+}
+
+type opCode struct {
+	op         int
+	param1mode int
+	param2mode int
+	param3mode int
 }
 
 func (p *program) prepItems(input string) {
 	p.items = strToIntA(input)
 }
 
-func (p *program) run() int {
+func (p *program) run(inputs []int) int {
+	p.outputs = []int{}
 	p.curr = 0
 
 	for p.curr < len(p.items) {
 		//		fmt.Printf("%d %v\n", p.curr, p.items)
-		switch p.items[p.curr] {
+		cmd := parseOpcode(p.items[p.curr])
+		switch cmd.op {
 		case 1:
-			p.execAdd()
+			p.execAdd(cmd)
 		case 2:
-			p.execMultiply()
+			p.execMultiply(cmd)
+		case 3:
+			p.store(inputs[0])
+			inputs = inputs[1:]
+		case 4:
+			v := p.getVal()
+			p.outputs = append(p.outputs, v)
+			//fmt.Printf("Output: %d\n", v)
 		case 99:
 			return p.items[0]
 		}
@@ -55,23 +63,71 @@ func (p *program) run() int {
 	return -1
 }
 
-func (p *program) execAdd() {
-	intA := p.val(p.curr + 1)
-	intB := p.val(p.curr + 2)
-	pos := p.items[p.curr+3]
-	p.items[pos] = intA + intB
+func parseOpcode(code int) *opCode {
+	cmd := fmt.Sprintf("%05d", code)
+	op, err := strconv.Atoi(cmd[3:5])
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	//	fmt.Printf("OP %d cmd:%s part: %s\n", op, cmd, string(cmd[3:5]))
+	return &opCode{op: op, param1mode: posToInt(cmd, 2), param2mode: posToInt(cmd, 1), param3mode: posToInt(cmd, 0)}
+}
+
+func posToInt(cmd string, pos int) int {
+	i, err := strconv.Atoi(string(cmd[pos]))
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	return i
+}
+
+func (p *program) execAdd(op *opCode) {
+	intA := p.valByMode(p.curr+1, op.param1mode)
+	intB := p.valByMode(p.curr+2, op.param2mode)
+	if op.param3mode == 0 {
+		pos := p.items[p.curr+3]
+		p.items[pos] = intA + intB
+	} else {
+		p.items[p.curr+3] = intA + intB
+	}
+
 	p.curr += 4
 }
 
-func (p *program) execMultiply() {
-	intA := p.val(p.curr + 1)
-	intB := p.val(p.curr + 2)
-	pos := p.items[p.curr+3]
-	p.items[pos] = intA * intB
+func (p *program) execMultiply(op *opCode) {
+	intA := p.valByMode(p.curr+1, op.param1mode)
+	intB := p.valByMode(p.curr+2, op.param2mode)
+	if op.param3mode == 0 {
+		pos := p.items[p.curr+3]
+		p.items[pos] = intA * intB
+	} else {
+		p.items[p.curr+3] = intA * intB
+	}
 	p.curr += 4
+}
+
+func (p *program) store(inp int) {
+	pos := p.items[p.curr+1]
+	logrus.Debugf("store> pos: %d val:=%d p.curr=%d items: %v", pos, inp, p.curr, p.items)
+	p.items[pos] = inp
+	p.curr += 2
+}
+
+func (p *program) getVal() int {
+	pos := p.items[p.curr+1]
+	p.curr += 2
+	return p.items[pos]
 }
 
 func (p *program) val(pos int) int {
+	return p.items[p.items[pos]]
+}
+
+func (p *program) valByMode(pos, mode int) int {
+	// Imidiate mode
+	if mode == 1 {
+		return p.items[pos]
+	}
 	return p.items[p.items[pos]]
 }
 
