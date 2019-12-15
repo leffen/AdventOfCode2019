@@ -139,7 +139,7 @@ func TestOp5678(t *testing.T) {
 			p := program{}
 			p.prepItems(tt.prg)
 			p.run([]int{tt.in})
-			fmt.Printf("Outputs: %v\n", p.outputs)
+			//fmt.Printf("Outputs: %v\n", p.outputs)
 			assert.Equal(t, tt.lastOut, p.lastOutput())
 		})
 	}
@@ -147,7 +147,7 @@ func TestOp5678(t *testing.T) {
 }
 
 func TestJump(t *testing.T) {
-	logrus.SetLevel(logrus.DebugLevel)
+	//logrus.SetLevel(logrus.DebugLevel)
 	input := "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9"
 	p := program{}
 	p.prepItems(input)
@@ -162,17 +162,17 @@ func TestJump(t *testing.T) {
 }
 
 func TestJumpX(t *testing.T) {
-	logrus.SetLevel(logrus.DebugLevel)
+	// logrus.SetLevel(logrus.DebugLevel)
 	input := "3,3,1105,-1,9,1101,0,0,12,4,12,99,1"
 	p := program{}
 	p.prepItems(input)
-	p.showItems()
 	res := p.run([]int{0})
-	fmt.Printf("Outputs: %v\n", p.outputs)
+	// fmt.Printf("Outputs: %v\n", p.outputs)
 	assert.Equal(t, 3, res)
 	assert.Equal(t, 0, p.lastOutput())
 
-	res = p.run([]int{8})
+	p.showItems()
+	res = p.run([]int{1})
 	fmt.Printf("Outputs: %v\n", p.outputs)
 	assert.Equal(t, 1, p.lastOutput())
 }
@@ -184,10 +184,12 @@ func TestJump2(t *testing.T) {
 	p.prepItems(input)
 	//	p.showItems()
 	res := p.run([]int{0})
-	fmt.Printf("Outputs: %v\n", p.outputs)
 	assert.Equal(t, 3, res)
-	assert.Equal(t, 0, p.lastOutput())
+	assert.Equal(t, 999, p.lastOutput())
 
-	//	res = p.run([]int{8})
-	//	assert.Equal(t, 1, p.lastOutput())
+	res = p.run([]int{8})
+	assert.Equal(t, 1000, p.lastOutput())
+
+	res = p.run([]int{789})
+	assert.Equal(t, 1001, p.lastOutput())
 }

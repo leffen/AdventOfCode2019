@@ -36,6 +36,7 @@ type program struct {
 	items   []int
 	curr    int
 	outputs []int
+	input   string
 }
 
 type opCode struct {
@@ -49,8 +50,42 @@ func (o *opCode) String() string {
 	return fmt.Sprintf(" opc:%d m1:%d m2:%d m3:%d", o.op, o.param1mode, o.param2mode, o.param3mode)
 }
 
+func (o *opCode) Code() string {
+	switch o.op {
+	case 1:
+		return "ADD"
+	case 2:
+		return "MUL"
+	case 3:
+		return "STO"
+	case 4:
+		return "GET"
+	case 5:
+		return "JUMP TRUE"
+	case 6:
+		return "JUMP FALSE"
+	case 7:
+		return "LESS THAN"
+	case 8:
+		return "EQUAL"
+	case 99:
+		return "STOP"
+	}
+	logrus.Fatal("Unknown opcode")
+	return "UNKNOWN"
+}
+
+func (o *opCode) Modes() string {
+	return fmt.Sprintf("m1:%d m2:%d m3:%d", o.param1mode, o.param2mode, o.param3mode)
+}
+
 func (p *program) prepItems(input string) {
+	p.input = input
 	p.items = strToIntA(input)
+}
+
+func (p *program) assignItems() {
+	p.items = strToIntA(p.input)
 }
 
 func (p *program) showItems() {
@@ -63,11 +98,13 @@ func (p *program) showItems() {
 func (p *program) run(inputs []int) int {
 	logrus.Debugf("RUNNING with %v", inputs)
 	p.outputs = []int{}
+	p.assignItems()
 	p.curr = 0
 
 	for p.curr < len(p.items) {
 		//		fmt.Printf("%d %v\n", p.curr, p.items)
 		cmd := parseOpcode(p.items[p.curr])
+		logrus.Debugf("  %s[%d] modes:%v", cmd.Code(), p.curr, cmd.Modes())
 		switch cmd.op {
 		case 1:
 			p.execAdd(cmd)
@@ -77,7 +114,7 @@ func (p *program) run(inputs []int) int {
 			p.store(inputs[0])
 			inputs = inputs[1:]
 		case 4:
-			v := p.getVal()
+			v := p.getVal(cmd)
 			p.outputs = append(p.outputs, v)
 		//fmt.Printf("Output: %d\n", v)
 		case 5:
@@ -90,7 +127,7 @@ func (p *program) run(inputs []int) int {
 			p.equal(cmd)
 
 		case 99:
-			logrus.Debugf("Op99[%d]: Returns %d outputs: %v", p.curr, p.items[0], p.outputs)
+			logrus.Debugf("    Exit with %d outputs: %v", p.items[0], p.outputs)
 			return p.items[0]
 		default:
 			logrus.Fatalf("Invalid opcode %v", cmd)
@@ -100,6 +137,120 @@ func (p *program) run(inputs []int) int {
 	}
 	logrus.Fatal("Unexpected end of program")
 	return -1
+}
+
+// Op 1
+func (p *program) execAdd(op *opCode) {
+	intA := p.valByMode(p.curr+1, op.param1mode)
+	intB := p.valByMode(p.curr+2, op.param2mode)
+	v := intA + intB
+	pos := p.items[p.curr+3]
+	if op.param3mode == 1 {
+		pos = p.curr + 3
+	}
+
+	p.items[pos] = v
+
+	logrus.Debugf("      i1: %d i2: %d items[%d]=%d items: %v ", intA, intB, pos, v, p.itemsForDisplay())
+
+	p.curr += 4
+}
+
+// Op 2
+func (p *program) execMultiply(op *opCode) {
+	intA := p.valByMode(p.curr+1, op.param1mode)
+	intB := p.valByMode(p.curr+2, op.param2mode)
+	v := intA * intB
+	pos := p.items[p.curr+3]
+	if op.param3mode == 1 {
+		pos = p.curr + 3
+	}
+	p.items[pos] = v
+
+	logrus.Debugf("      i1: %d * %d = %v items[%d]=%d  items: %v op:%v", intA, v, pos, v, intB, p.itemsForDisplay(), op)
+
+	p.curr += 4
+}
+
+// Opcode 3
+func (p *program) store(inp int) {
+	pos := p.items[p.curr+1]
+	p.items[pos] = inp
+	logrus.Debugf("      save %d in %d items[%d]=%d items: %v ", inp, pos, pos, inp, p.itemsForDisplay())
+
+	p.curr += 2
+}
+
+// Opcode 4
+func (p *program) getVal(op *opCode) int {
+	pos := p.items[p.curr+1]
+	if op.param1mode == 1 {
+		pos = p.curr + 1
+	}
+	v := p.items[pos]
+	logrus.Debugf("      Get val in pos: %d returns: %d items: %v", pos, v, p.itemsForDisplay())
+	p.curr += 2
+	return v
+}
+
+// Opcode 5
+func (p *program) jumpIfTrue(op *opCode) int {
+	v := p.valByMode(p.curr+1, op.param1mode)
+	pos := p.valByMode(p.curr+2, op.param2mode)
+
+	logrus.Debugf("      Jump if %v != 0. jump_to:%d items: %v", v, pos, p.itemsForDisplay())
+
+	if v != 0 {
+		p.curr = pos
+	} else {
+		p.curr += 3
+	}
+	return p.curr
+}
+
+// Opcode 6
+func (p *program) jumpIfFalse(op *opCode) int {
+	v := p.valByMode(p.curr+1, op.param1mode)
+	pos := p.valByMode(p.curr+2, op.param2mode)
+
+	logrus.Debugf("      Jump to %d if %d == 0 items: %v", pos, v, p.itemsForDisplay())
+
+	if v == 0 {
+		p.curr = pos
+	} else {
+		p.curr += 3
+	}
+	return p.curr
+}
+
+// Opcode 7
+func (p *program) lessThan(op *opCode) int {
+	v1 := p.valByMode(p.curr+1, op.param1mode)
+	v2 := p.valByMode(p.curr+2, op.param2mode)
+	pos := p.posByMode(p.curr+3, op.param3mode)
+	v := int(0)
+	if v1 < v2 {
+		v = 1
+	}
+	p.items[pos] = v
+	logrus.Debugf("        Store %d in %d (1 if %d < %d else 0) items[%d]=%d items: %v ", v, pos, v1, v2, pos, p.items[pos], p.itemsForDisplay())
+	p.curr += 4
+	return p.curr
+}
+
+// Opcode 8
+func (p *program) equal(op *opCode) int {
+	v1 := p.valByMode(p.curr+1, op.param1mode)
+	v2 := p.valByMode(p.curr+2, op.param2mode)
+	pos := p.posByMode(p.curr+3, op.param3mode)
+	v := int(0)
+	if v1 == v2 {
+		v = 1
+	}
+	logrus.Debugf("      Store %d in %d (1 if %d== %d else 0) items: %v", v, pos, v1, v2, p.itemsForDisplay())
+	p.items[pos] = v
+	p.curr += 4
+	return p.curr
 }
 
 func parseOpcode(code int) *opCode {
@@ -122,117 +273,6 @@ func posToInt(cmd string, pos int) int {
 
 func (p *program) lastOutput() int {
 	return p.outputs[len(p.outputs)-1]
-}
-
-// Op 1
-func (p *program) execAdd(op *opCode) {
-	intA := p.valByMode(p.curr+1, op.param1mode)
-	intB := p.valByMode(p.curr+2, op.param2mode)
-	v := intA + intB
-	pos := p.items[p.curr+3]
-	if op.param3mode == 1 {
-		pos = p.curr + 3
-	}
-
-	p.items[pos] = v
-
-	logrus.Debugf("Op1[%d]:ADD i1: %d i2: %d items[%d]=%d items: %v op:%v", p.curr, intA, intB, pos, v, p.itemsForDisplay(), op)
-
-	p.curr += 4
-}
-
-// Op 2
-func (p *program) execMultiply(op *opCode) {
-	intA := p.valByMode(p.curr+1, op.param1mode)
-	intB := p.valByMode(p.curr+2, op.param2mode)
-	v := intA * intB
-	pos := p.items[p.curr+3]
-	if op.param3mode == 1 {
-		pos = p.curr + 3
-	}
-	p.items[pos] = v
-
-	logrus.Debugf("Op2[%d]:MUL i1: %d * %d = %v items[%d]=%d  items: %v op:%v", p.curr, intA, v, pos, v, intB, p.itemsForDisplay(), op)
-
-	p.curr += 4
-}
-
-// Opcode 3
-func (p *program) store(inp int) {
-	pos := p.items[p.curr+1]
-	p.items[pos] = inp
-	logrus.Debugf("Op3[%d]:STO %d in %d items[%d]=%d items: %v ", p.curr, inp, pos, p.items[pos], inp, p.itemsForDisplay())
-
-	p.curr += 2
-}
-
-// Opcode 4
-func (p *program) getVal() int {
-	pos := p.items[p.curr+1]
-	v := p.items[pos]
-	logrus.Debugf("Op4[%d]:GET val in pos: %d returns: %d items: %v", p.curr, pos, v, p.itemsForDisplay())
-	p.curr += 2
-	return v
-}
-
-// Opcode 5
-func (p *program) jumpIfTrue(op *opCode) int {
-	v := p.valByMode(p.curr+1, op.param1mode)
-	pos := p.valByMode(p.curr+2, op.param2mode)
-
-	logrus.Debugf("Op5[%d]:JT v: %d Jump: %v jump_to:%d items: %v op:%v", p.curr, v, v != 0, pos, p.itemsForDisplay(), op)
-
-	if v != 0 {
-		p.curr = pos
-	} else {
-		p.curr += 3
-	}
-	return p.curr
-}
-
-// Opcode 6
-func (p *program) jumpIfFalse(op *opCode) int {
-	v := p.valByMode(p.curr+1, op.param1mode)
-	pos := p.valByMode(p.curr+2, op.param2mode)
-
-	logrus.Debugf("Op6[%d]:JF v: %d Jump: %v jump_to:%d  items: %v op: %v", p.curr, v, v == 0, pos, p.itemsForDisplay(), op)
-
-	if v == 0 {
-		p.curr = pos
-	} else {
-		p.curr += 3
-	}
-	return p.curr
-}
-
-// Opcode 7
-func (p *program) lessThan(op *opCode) int {
-	v1 := p.valByMode(p.curr+1, op.param1mode)
-	v2 := p.valByMode(p.curr+2, op.param2mode)
-	pos := p.posByMode(p.curr+3, op.param3mode)
-	v := int(0)
-	if v1 < v2 {
-		v = 1
-	}
-	p.items[pos] = v
-	logrus.Debugf("Op7[%d]:LT v1: %d v2: %d lt: %v v: %d pos: %d items: %v op:%v", p.curr, v1, v2, v1 < v2, v, pos, p.itemsForDisplay(), op)
-	p.curr += 4
-	return p.curr
-}
-
-// Opcode 8
-func (p *program) equal(op *opCode) int {
-	v1 := p.valByMode(p.curr+1, op.param1mode)
-	v2 := p.valByMode(p.curr+2, op.param2mode)
-	pos := p.posByMode(p.curr+3, op.param3mode)
-	v := int(0)
-	if v1 == v2 {
-		v = 1
-	}
-	logrus.Debugf("Op8[%d]:EQ v1: %d v2: %d eq: %v v: %d pos: %d items: %v op:%v", p.curr, v1, v2, v1 == v2, v, pos, p.itemsForDisplay(), op)
-	p.items[pos] = v
-	p.curr += 4
-	return p.curr
 }
 
 func (p *program) itemsForDisplay() []int {
