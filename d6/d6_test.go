@@ -39,7 +39,29 @@ K)L
 	o := newOribitCalc(items)
 	cnt := o.calcAllOrbits()
 	assert.Equal(t, 42, cnt)
-	for k, v := range o.mp {
-		fmt.Printf("%s Item: %v\n", k, v)
-	}
+}
+
+func TestMinimumHops(t *testing.T) {
+	data := `COM)B
+	B)C
+	C)D
+	D)E
+	E)F
+	B)G
+	G)H
+	D)I
+	E)J
+	J)K
+	K)L
+	K)YOU
+	I)SAN
+	`
+
+	items, err := itemFromText(data)
+	assert.Nil(t, err)
+	assert.NotNil(t, items)
+	o := newOribitCalc(items)
+	assert.NotNil(t, o)
+	hops := o.calcMinimunOrbTransfers("YOU", "SAN")
+	assert.Equal(t, 4, hops)
 }
