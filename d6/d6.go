@@ -132,16 +132,12 @@ func (o *oribitCalc) calcMinimunOrbTransfers(from, to string) int {
 	//fmt.Printf("P1: %v\n", p1)
 	//fmt.Printf("P2: %v\n", p2)
 
-	h1 := 0
-	for _, p := range p1 {
-		h2 := 0
-		for _, s := range p2 {
+	for idx, p := range p1 {
+		for idx2, s := range p2 {
 			if p == s {
-				return h1 + h2
+				return idx + idx2
 			}
-			h2++
 		}
-		h1++
 	}
 
 	return rc
