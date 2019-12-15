@@ -1,4 +1,4 @@
-module leffen/adventofcode2019/d2
+module leffen/adventofcode2019/d5
 
 go 1.13
 

@@ -89,3 +89,103 @@ func TestOpcodeInp(t *testing.T) {
 	res := p.run([]int{})
 	assert.Equal(t, 1002, res)
 }
+
+func TestOp5678(t *testing.T) {
+	//	logrus.SetLevel(logrus.DebugLevel)
+	input := "3,9,8,9,10,9,4,9,99,-1,8"
+	p := program{}
+	p.prepItems(input)
+	res := p.run([]int{77})
+	fmt.Printf("Outputs: %v\n", p.outputs)
+	assert.Equal(t, 3, res)
+	assert.Equal(t, 0, p.lastOutput())
+
+	res = p.run([]int{8})
+	assert.Equal(t, 1, p.lastOutput())
+
+	var tests = []struct {
+		name    string
+		in      int
+		prg     string
+		lastOut int
+	}{
+		{"t1", 99, "3,9,8,9,10,9,4,9,99,-1,8", 0},
+		{"t1", 8, "3,9,8,9,10,9,4,9,99,-1,8", 1},
+
+		{"t2", 8, "3,9,7,9,10,9,4,9,99,-1,8", 0},
+		{"t2", 7, "3,9,7,9,10,9,4,9,99,-1,8", 1},
+		{"t2", 77, "3,9,7,9,10,9,4,9,99,-1,8", 0},
+
+		{"t3", 0, "3,3,1108,-1,8,3,4,3,99", 0},
+		{"t3", 7, "3,3,1108,-1,8,3,4,3,99", 0},
+		{"t3", 8, "3,3,1108,-1,8,3,4,3,99", 1},
+		{"t3", 999, "3,3,1108,-1,8,3,4,3,99", 0},
+
+		{"t4", 0, "3,3,1107,-1,8,3,4,3,99", 1},
+		{"t4", 7, "3,3,1107,-1,8,3,4,3,99", 1},
+		{"t4", 8, "3,3,1107,-1,8,3,4,3,99", 0},
+		{"t4", 999, "3,3,1107,-1,8,3,4,3,99", 0},
+
+		{"t5", 0, "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", 0},
+		{"t5", 99, "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9", 1},
+
+		{"t6", 0, "3,3,1105,-1,9,1101,0,0,12,4,12,99,1", 0},
+		{"t6", 99, "3,3,1105,-1,9,1101,0,0,12,4,12,99,1", 1},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("OP %05d", tt.in), func(tx *testing.T) {
+			p := program{}
+			p.prepItems(tt.prg)
+			p.run([]int{tt.in})
+			fmt.Printf("Outputs: %v\n", p.outputs)
+			assert.Equal(t, tt.lastOut, p.lastOutput())
+		})
+	}
+
+}
+
+func TestJump(t *testing.T) {
+	logrus.SetLevel(logrus.DebugLevel)
+	input := "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9"
+	p := program{}
+	p.prepItems(input)
+	p.showItems()
+	res := p.run([]int{0})
+	fmt.Printf("Outputs: %v\n", p.outputs)
+	assert.Equal(t, 3, res)
+	assert.Equal(t, 0, p.lastOutput())
+
+	res = p.run([]int{8})
+	assert.Equal(t, 1, p.lastOutput())
+}
+
+func TestJumpX(t *testing.T) {
+	logrus.SetLevel(logrus.DebugLevel)
+	input := "3,3,1105,-1,9,1101,0,0,12,4,12,99,1"
+	p := program{}
+	p.prepItems(input)
+	p.showItems()
+	res := p.run([]int{0})
+	fmt.Printf("Outputs: %v\n", p.outputs)
+	assert.Equal(t, 3, res)
+	assert.Equal(t, 0, p.lastOutput())
+
+	res = p.run([]int{8})
+	fmt.Printf("Outputs: %v\n", p.outputs)
+	assert.Equal(t, 1, p.lastOutput())
+}
+
+func TestJump2(t *testing.T) {
+	logrus.SetLevel(logrus.DebugLevel)
+	input := "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99"
+	p := program{}
+	p.prepItems(input)
+	//	p.showItems()
+	res := p.run([]int{0})
+	fmt.Printf("Outputs: %v\n", p.outputs)
+	assert.Equal(t, 3, res)
+	assert.Equal(t, 0, p.lastOutput())
+
+	//	res = p.run([]int{8})
+	//	assert.Equal(t, 1, p.lastOutput())
+}
