@@ -10,13 +10,13 @@ import (
 func TestImport(t *testing.T) {
 	items, err := importFile("input.txt")
 	assert.Nil(t, err)
-	assert.Equal(t, 1866, len(items))
+	assert.Equal(t, 934, len(items))
 
 	o := newOribitCalc(items)
 	fmt.Printf("map: %d", len(o.mp))
 
 	x := o.calcAllOrbits()
-	assert.Equal(t, 1, x)
+	assert.Equal(t, 119831, x)
 }
 
 func TestOrbitals(t *testing.T) {
