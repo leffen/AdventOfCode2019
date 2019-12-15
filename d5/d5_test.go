@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"gotest.tools/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInput(t *testing.T) {
@@ -19,11 +19,13 @@ func TestInput(t *testing.T) {
 }
 
 func TestRun1(t *testing.T) {
+	logrus.SetLevel(logrus.DebugLevel)
 	input := "1,9,10,3,2,3,11,0,99,30,40,50"
 	p := program{}
 	p.prepItems(input)
 	res := p.run([]int{})
 	assert.Equal(t, 3500, res)
+	assert.True(t, false)
 }
 
 func TestRun2(t *testing.T) {
