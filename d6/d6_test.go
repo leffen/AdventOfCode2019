@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,7 @@ func TestImport(t *testing.T) {
 	assert.Equal(t, 934, len(items))
 
 	o := newOribitCalc(items)
-	fmt.Printf("map: %d", len(o.mp))
+	//fmt.Printf("map: %d", len(o.mp))
 
 	x := o.calcAllOrbits()
 	assert.Equal(t, 119831, x)
