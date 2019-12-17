@@ -88,14 +88,53 @@ func part2() {
 }
 
 func main() {
-	part1()
+	part2()
 }
+
+func analyzeSeq(input string, seq []int) int {
+	amplifiers := []*program{&program{name: "a"}, &program{name: "b"}, &program{name: "c"}, &program{name: "d"}, &program{name: "e"}}
+	for idx, a := range amplifiers {
+		a.prepItemsWithSeq(input, seq[idx])
+	}
+	max := 0
+	phase := 0
+	done := false
+	for !done {
+		allDone := true
+		for _, a := range amplifiers {
+			if !a.done {
+				//				fmt.Printf("Prosessing input %d\n", phase)
+				_, returnValue, _, err := a.processInput([]int{phase})
+				if err != nil {
+					logrus.Fatal("Should not happen", err)
+				}
+				if !a.done {
+					allDone = false
+				}
+
+				phase = returnValue
+			}
+		}
+		if phase > max {
+			max = phase
+		}
+		done = allDone
+	}
+	return max
+}
+
+const returnCode = 1   // Outputs value. opcode4
+const doneCode = 2     // END program, opcode99
+const continueCode = 3 //
 
 type program struct {
 	items   []int
+	signals []int
 	curr    int
 	outputs []int
 	input   string
+	name    string
+	done    bool
 }
 
 type opCode struct {
@@ -138,12 +177,18 @@ func (o *opCode) Modes() string {
 	return fmt.Sprintf("m1:%d m2:%d m3:%d", o.param1mode, o.param2mode, o.param3mode)
 }
 
+func (p *program) prepItemsWithSeq(input string, phase int) {
+	p.signals = []int{phase}
+	p.prepItems(input)
+}
+
 func (p *program) prepItems(input string) {
 	p.input = input
 	p.items = strToIntA(input)
 }
 
 func (p *program) assignItems() {
+	p.curr = 0
 	p.items = strToIntA(p.input)
 }
 
@@ -152,6 +197,27 @@ func (p *program) showItems() {
 	for idx, i := range p.items {
 		fmt.Printf(" %02d %d\n", idx, i)
 	}
+}
+
+// processInput returns itemsValue,returnValue,exitCode, errorCode
+func (p *program) processInput(inputs []int) (int, int, int, error) {
+	logrus.Debugf("%s Process input with %v", p.name, inputs)
+	p.signals = append(p.signals, inputs...)
+
+	for p.curr < len(p.items) {
+		cmd := parseOpcode(p.items[p.curr])
+		v, exitCode := p.doCmd(cmd, inputs)
+		if exitCode == doneCode {
+			p.done = true
+			return p.items[0], -1, exitCode, nil
+		}
+		if exitCode == returnCode {
+			return p.items[0], v, exitCode, nil
+		}
+
+	}
+	logrus.Fatal("Unexpected end of program")
+	return -1, -1, -1, fmt.Errorf("Unexpected exit")
 }
 
 func (p *program) run(inputs []int) int {
@@ -163,39 +229,48 @@ func (p *program) run(inputs []int) int {
 	for p.curr < len(p.items) {
 		//		fmt.Printf("%d %v\n", p.curr, p.items)
 		cmd := parseOpcode(p.items[p.curr])
-		logrus.Debugf("  %s[%d] modes:%v", cmd.Code(), p.curr, cmd.Modes())
-		switch cmd.op {
-		case 1:
-			p.execAdd(cmd)
-		case 2:
-			p.execMultiply(cmd)
-		case 3:
-			p.store(inputs[0])
-			inputs = inputs[1:]
-		case 4:
-			v := p.getVal(cmd)
-			p.outputs = append(p.outputs, v)
-		//fmt.Printf("Output: %d\n", v)
-		case 5:
-			p.jumpIfTrue(cmd)
-		case 6:
-			p.jumpIfFalse(cmd)
-		case 7:
-			p.lessThan(cmd)
-		case 8:
-			p.equal(cmd)
-
-		case 99:
-			logrus.Debugf("    Exit with %d outputs: %v", p.items[0], p.outputs)
+		v, exitCode := p.doCmd(cmd, inputs)
+		if exitCode == doneCode {
 			return p.items[0]
-		default:
-			logrus.Fatalf("Invalid opcode %v", cmd)
-
 		}
-
+		if exitCode == returnCode {
+			p.outputs = append(p.outputs, v)
+		}
 	}
 	logrus.Fatal("Unexpected end of program")
 	return -1
+}
+
+// doCmd and returns output and exitcode
+func (p *program) doCmd(cmd *opCode, inputs []int) (int, int) {
+	logrus.Debugf("  %s[%d] modes:%v", cmd.Code(), p.curr, cmd.Modes())
+
+	switch cmd.op {
+	case 1:
+		p.execAdd(cmd)
+	case 2:
+		p.execMultiply(cmd)
+	case 3:
+		p.store(p.signals[0])
+		p.signals = p.signals[1:]
+	case 4:
+		return p.getVal(cmd), returnCode
+	case 5:
+		p.jumpIfTrue(cmd)
+	case 6:
+		p.jumpIfFalse(cmd)
+	case 7:
+		p.lessThan(cmd)
+	case 8:
+		p.equal(cmd)
+
+	case 99:
+		logrus.Debugf("    Exit with %d outputs: %v", p.items[0], p.outputs)
+		return p.items[0], doneCode
+	default:
+		logrus.Fatalf("Invalid opcode %v", cmd)
+	}
+	return -1, continueCode
 }
 
 // Op 1
