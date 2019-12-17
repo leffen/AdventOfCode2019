@@ -68,11 +68,7 @@ func part2() {
 							continue
 						}
 						seq := []int{i, j, k, l, m}
-						for _, s := range seq {
-							inpVals := []int{s, phase}
-							p.run(inpVals)
-							phase = p.lastOutput()
-						}
+						phase = analyzeSeq(input, seq)
 						if phase > max {
 							max = phase
 							currSeq = seq
@@ -111,7 +107,6 @@ func analyzeSeq(input string, seq []int) int {
 				if !a.done {
 					allDone = false
 				}
-
 				phase = returnValue
 			}
 		}

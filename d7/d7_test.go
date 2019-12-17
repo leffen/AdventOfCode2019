@@ -231,51 +231,13 @@ func TestPhase1Part2(t *testing.T) {
 	input := "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
 	seq := []int{9, 8, 7, 6, 5}
 
-	amplifiers := []*program{&program{name: "a"}, &program{name: "b"}, &program{name: "c"}, &program{name: "d"}, &program{name: "e"}}
-	for idx, a := range amplifiers {
-		a.prepItemsWithSeq(input, seq[idx])
-	}
-	max := 0
-	phase := 0
-	done := false
-	for !done {
-		allDone := true
-		for _, a := range amplifiers {
-			if !a.done {
-				//				fmt.Printf("Prosessing input %d\n", phase)
-				_, returnValue, _, err := a.processInput([]int{phase})
-				if err != nil {
-					assert.Fail(t, "Should not happen", err)
-				}
-				if !a.done {
-					allDone = false
-				}
-
-				phase = returnValue
-			}
-		}
-		if phase > max {
-			max = phase
-		}
-		done = allDone
-	}
-
+	max := analyzeSeq(input, seq)
 	assert.Equal(t, 139629729, max)
 }
 
-func XTestPhase2Part2(t *testing.T) {
+func TestPhase2Part2(t *testing.T) {
 	input := "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
-	seq := []int{9, 8, 7, 6, 5}
-	p := program{}
-	p.prepItems(input)
-	p.assignItems()
-
-	phase := 0
-	for _, s := range seq {
-		inpVals := []int{s, phase}
-		fmt.Printf("Running with %v\n", inpVals)
-		p.run(inpVals)
-		phase = p.lastOutput()
-	}
-	assert.Equal(t, 54321, phase)
+	seq := []int{9, 7, 8, 5, 6}
+	max := analyzeSeq(input, seq)
+	assert.Equal(t, 18216, max)
 }
