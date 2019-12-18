@@ -15,11 +15,11 @@ func main() {
 	img.show()
 }
 
-func analyze(data []int, w, t int) *image {
-	img := &image{layers: []*layer{}, minZ: 999999}
-	numElements := w * t
+func analyze(data []int, w, h int) *image {
+	img := &image{layers: []*layer{}, minZ: 999999, w: w, h: h}
+	numElements := w * h
 	for i := 0; i < len(data); i += numElements {
-		l := data[i : i+(w*t)]
+		l := data[i : i+(w*h)]
 		img.addLayer(&layer{data: l})
 	}
 	fmt.Printf("Num layers: %d\n", len(img.layers))
@@ -36,8 +36,35 @@ type image struct {
 }
 
 func (i *image) show() {
-	//	imgLayer := &layer{}
+	imgLayer := &layer{data: make([]int, i.w*i.h)}
+	numElements := i.w * i.h
+	for pos := 0; pos < numElements; pos++ {
+		imgLayer.data[pos] = i.getPixel(pos)
+	}
 
+	pos := 0
+	for y := i.h - 1; y >= 0; y-- {
+		for x := 0; x < i.w; x++ {
+			if imgLayer.data[pos] > 0 {
+				fmt.Printf("%02d ", imgLayer.data[pos])
+
+			} else {
+				fmt.Print("   ")
+			}
+			pos++
+		}
+		fmt.Printf("\n")
+	}
+
+}
+func (i *image) getPixel(pos int) int {
+
+	for _, l := range i.layers {
+		if l.data[pos] < 2 {
+			return l.data[pos]
+		}
+	}
+	return -1
 }
 
 func (i *image) addLayer(l *layer) {
